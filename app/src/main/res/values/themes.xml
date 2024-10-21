@@ -1,0 +1,28 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.ADSv" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:statusBarColor">#80000000</item> <!-- Un color negro semitransparente -->
+        <!-- Otros estilos -->
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item> <!-- Íconos oscuros -->
+    </style>
+<style name="ToolBarTheme" parent="ThemeOverlay.AppCompat.ActionBar">
+    <item name="colorControlNormal">@color/white</item>
+    <item name="titleTextColor">@color/white</item>
+</style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="CustomAlertDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:colorAccent">@color/colorPrimary</item> <!-- Color para el botón positivo -->
+        <item name="android:textColorPrimary">@color/colorPrimary</item> <!-- Color para el título y mensaje -->
+        <item name="android:textColor">@color/colorPrimaryDark</item> <!-- Color para el botón negativo -->
+    </style>
+
+    <style name="Theme.ADSv" parent="Base.Theme.ADSv" />
+</resources>
