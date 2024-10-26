@@ -5,6 +5,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.Intent;
@@ -17,10 +20,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ads.activities.MainActivity;
@@ -51,6 +62,8 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DatabaseError;
 import com.project.ads.R;
 
@@ -64,7 +77,7 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
 
     private static final String TAG = "MapClientActivity";
     private static final int LOCATION_REQUEST_CODE = 1;
-    private static final float DEFAULT_ZOOM = 15f;
+    private static final float DEFAULT_ZOOM = 17f;
     private static final int SEARCH_RADIUS = 10;
 
     private GoogleMap mMap;
@@ -83,16 +96,39 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
     private AutocompleteSupportFragment mAutoComplete;
     private String mOrigin;
     private LatLng mOriginLatLng;
+    private Spinner mFilterSpinner;
+    private String mCurrentFilter = "todos"; // Default filter value
+    private LinearLayout mLegendContainer;
+    private static final Map<String, Integer> WORKER_ICONS = new HashMap<>();
+
+    static {
+        WORKER_ICONS.put("Carpintería", R.drawable.icon_carpenter);
+        WORKER_ICONS.put("Ferretería", R.drawable.icon_ferreteria);
+        WORKER_ICONS.put("Pintor", R.drawable.icon_painter);
+        WORKER_ICONS.put("Electricista", R.drawable.icon_electrician);
+        WORKER_ICONS.put("Plomería", R.drawable.icon_plumber);
+        WORKER_ICONS.put("Jardinería", R.drawable.icon_gardener);
+        WORKER_ICONS.put("Albañilería", R.drawable.icon_mason);
+    }
+    private FloatingActionButton mFabLegend;
+    private MaterialCardView mLegendCard;
+    private RecyclerView mLegendRecycler;
+    private boolean isLegendVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_client);
 
+
+
         initToolbar();
         initProviders();
         initMap();
         initPlaces();
+        initFilterSpinner();
+        initLegend();
+
 
 
         // Asegúrate de que la barra de estado sea completamente transparente
@@ -101,6 +137,117 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
             window.setStatusBarColor(getResources().getColor(android.R.color.transparent));
         }
     }
+
+    private void initLegend() {
+        mFabLegend = findViewById(R.id.fab_legend);
+        mLegendCard = findViewById(R.id.legend_card);
+        mLegendRecycler = findViewById(R.id.legend_recycler);
+
+        // Configurar RecyclerView
+        mLegendRecycler.setLayoutManager(new LinearLayoutManager(this));
+        mLegendRecycler.setHasFixedSize(true);
+
+        // Crear y establecer el adaptador
+        LegendAdapter adapter = new LegendAdapter(getLegendItems());
+        mLegendRecycler.setAdapter(adapter);
+
+        // Configurar el botón FAB
+        mFabLegend.setOnClickListener(v -> toggleLegend());
+    }
+
+    private List<LegendItem> getLegendItems() {
+        List<LegendItem> items = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : WORKER_ICONS.entrySet()) {
+            items.add(new LegendItem(entry.getKey(), entry.getValue()));
+        }
+        return items;
+    }
+
+    private void toggleLegend() {
+        if (isLegendVisible) {
+            hideLegend();
+        } else {
+            showLegend();
+        }
+    }
+
+    private void showLegend() {
+        mLegendCard.setVisibility(View.VISIBLE);
+        mLegendCard.animate()
+                .alpha(1f)
+                .translationY(0)
+                .setDuration(200)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
+        mFabLegend.setImageResource(R.drawable.ic_close);
+        isLegendVisible = true;
+    }
+
+    private void hideLegend() {
+        mLegendCard.animate()
+                .alpha(0f)
+                .translationY(mLegendCard.getHeight())
+                .setDuration(200)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .withEndAction(() -> mLegendCard.setVisibility(View.GONE))
+                .start();
+        mFabLegend.setImageResource(R.drawable.ic_legend);
+        isLegendVisible = false;
+    }
+
+    // Clase para los items de la leyenda
+    private static class LegendItem {
+        String text;
+        int iconRes;
+
+        LegendItem(String text, int iconRes) {
+            this.text = text;
+            this.iconRes = iconRes;
+        }
+    }
+
+    // Adaptador para la leyenda
+    private static class LegendAdapter extends RecyclerView.Adapter<LegendAdapter.ViewHolder> {
+        private final List<LegendItem> items;
+
+        LegendAdapter(List<LegendItem> items) {
+            this.items = items;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.legend_item, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            LegendItem item = items.get(position);
+            holder.icon.setImageResource(item.iconRes);
+            holder.text.setText(item.text);
+        }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView icon;
+            TextView text;
+
+            ViewHolder(View itemView) {
+                super(itemView);
+                icon = itemView.findViewById(R.id.legend_icon);
+                text = itemView.findViewById(R.id.legend_text);
+            }
+        }
+    }
+
+
+
 
     private void initToolbar() {
         setSupportActionBar(findViewById(R.id.toolbar_color));
@@ -198,7 +345,7 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(
                 new CameraPosition.Builder()
                         .target(latLng)
-                        .zoom(17f)
+                        .zoom(DEFAULT_ZOOM)
                         .build()
         ));
     }
@@ -239,15 +386,68 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
             if (dataSnapshot.exists()) {
                 Worker worker = dataSnapshot.getValue(Worker.class);
                 if (worker != null && !mWorkersMarkers.containsKey(workerId)) {
-                    Marker marker = mMap.addMarker(new MarkerOptions()
-                            .position(location)
-                            .title(worker.getName())
-                            .icon(getIconForWorkerType(worker.getWork())));
-                    marker.setTag(workerId);
-                    mWorkersMarkers.put(workerId, marker);
+                    // Apply filter
+                    if (mCurrentFilter.equals("Todos los servicios") ||
+                            worker.getWork().equalsIgnoreCase(mCurrentFilter)) {
+                        Marker marker = mMap.addMarker(new MarkerOptions()
+                                .position(location)
+                                .title(worker.getName())
+                                .icon(getIconForWorkerType(worker.getWork())));
+                        marker.setTag(workerId);
+                        mWorkersMarkers.put(workerId, marker);
+                    }
                 }
             }
         });
+    }
+    private void initFilterSpinner() {
+        mFilterSpinner = findViewById(R.id.spinner_filter);
+
+        List<String> filterOptions = new ArrayList<>();
+        filterOptions.add("Todos los servicios");
+        filterOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.service_types)));
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                this,
+                R.layout.spinner_item, // Custom layout for items
+                filterOptions
+        ) {
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                view.setBackgroundColor(position == mFilterSpinner.getSelectedItemPosition() ?
+                        getResources().getColor(R.color.colorPrimaryLight) :
+                        Color.WHITE);
+                return view;
+            }
+        };
+
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item); // Custom layout for dropdown
+        mFilterSpinner.setAdapter(adapter);
+
+        mFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = parent.getItemAtPosition(position).toString();
+                if (!selected.equals(mCurrentFilter)) {
+                    mCurrentFilter = selected;
+                    clearWorkersFromMap();
+                    getActiveWorkers();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                mCurrentFilter = "Todos los servicios";
+            }
+        });
+    }
+
+    private void clearWorkersFromMap() {
+        for (Marker marker : mWorkersMarkers.values()) {
+            marker.remove();
+        }
+        mWorkersMarkers.clear();
     }
 
     private void removeWorkerMarker(String workerId) {
@@ -360,7 +560,7 @@ public class MapClientActivity extends AppCompatActivity implements OnMapReadyCa
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
+        if (item.getItemId() == R.id.action_logout_client) {
             logout();
             return true;
         }

@@ -40,12 +40,13 @@ public class RegisterWorkerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_worker);
-
         MyToolbar.showTransparent(this, "Registro de Trabajador", true);
+
 
         initializeViews();
         initializeProviders();
         setupServiceTypeDropdown();
+
 
         mButtonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
