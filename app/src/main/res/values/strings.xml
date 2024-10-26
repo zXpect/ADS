@@ -113,5 +113,6 @@
     <string name="request_service">Solicitar servicio</string>
     <string name="cancel">Cancelar</string>
     <string name="map_worker_title">Mapa Trabajador</string>
+    <string name="filter_icon">Filtrar</string>
 
 </resources>

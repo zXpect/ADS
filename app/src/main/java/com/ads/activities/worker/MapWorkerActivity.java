@@ -91,6 +91,7 @@ public class MapWorkerActivity extends AppCompatActivity implements OnMapReadyCa
         initUI();
         initMap();
 
+
         // Asegúrate de que la barra de estado sea completamente transparente
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
