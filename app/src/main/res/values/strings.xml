@@ -51,6 +51,11 @@
         <item>Albañilería</item>
     </string-array>
 
+
+        <string name="logo_description">Logo de la aplicación</string>
+        <string name="footer_text">© 2024 ADS. Todos los derechos reservados.</string>
+
+
     <string name="fix_depot_title">Fix Depot</string>
     <string name="tools_banner_description">Tools and materials banner</string>
     <string name="featured_tools">Featured Tools</string>
