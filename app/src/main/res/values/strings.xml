@@ -3,7 +3,7 @@
     <string name="boton_client">CLIENTE</string>
     <string name="boton_worker">TRABAJADOR</string>
     <string name="select_tipe_user">¡Bienvenido/a! Selecciona el tipo de Usuario</string>
-    <string name="boton_login">INICIAR SESION</string>
+    <string name="boton_login">INICIAR SESIÓN</string>
     <string name="email">Correo</string>
     <string name="contraseña">Contraseña</string>
     <string name="boton_register">REGISTRARSE</string>
